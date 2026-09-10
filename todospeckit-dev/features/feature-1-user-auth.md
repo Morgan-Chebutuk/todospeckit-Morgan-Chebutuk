@@ -344,15 +344,15 @@ Each scenario above must map to at least one automated test.
 
 | Story | Scenario | Test file | Test name |
 |-------|----------|-----------|-----------|
-| US-1.1 | User registers with valid information | `backend/tests/auth.test.js` | `User registers with valid information` |
-| US-1.1 | User submits registration with missing email | `backend/tests/auth.test.js` | `User submits registration with missing email` |
+| US-1.1 | User registers with valid information | `backend/tests/auth.test.js`, `frontend/tests/Register.test.js` | `User registers with valid information` |
+| US-1.1 | User submits registration with missing email | `backend/tests/auth.test.js`, `frontend/tests/Register.test.js` | `User submits registration with missing email` |
 | US-1.1 | User submits registration with invalid email format | `frontend/tests/Register.test.js` | `User submits registration with invalid email format` |
 | US-1.1 | User submits registration with missing username | `frontend/tests/Register.test.js` | `User submits registration with missing username` |
 | US-1.1 | User submits registration with password too short | `backend/tests/auth.test.js`, `frontend/tests/Register.test.js` | `User submits registration with password too short` |
 | US-1.1 | User submits registration with mismatched passwords | `frontend/tests/Register.test.js` | `User submits registration with mismatched passwords` |
-| US-1.1 | User registers with a duplicate username | `backend/tests/auth.test.js` | `User registers with a duplicate username` |
-| US-1.1 | User registers with a duplicate email | `backend/tests/auth.test.js` | `User registers with a duplicate email` |
-| US-1.2 | User signs in with valid credentials | `backend/tests/auth.test.js` | `User signs in with valid credentials` |
+| US-1.1 | User registers with a duplicate username | `backend/tests/auth.test.js`, `frontend/tests/Register.test.js` | `User registers with a duplicate username` |
+| US-1.1 | User registers with a duplicate email | `backend/tests/auth.test.js`, `frontend/tests/Register.test.js` | `User registers with a duplicate email` |
+| US-1.2 | User signs in with valid credentials | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js` | `User signs in with valid credentials` |
 | US-1.2 | User signs in with invalid password | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js` | `User signs in with invalid password` |
 | US-1.2 | User signs in with missing username | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js` | `User signs in with missing username` |
 | US-1.2 | User signs in with missing password | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js` | `User signs in with missing password` |
@@ -360,7 +360,7 @@ Each scenario above must map to at least one automated test.
 | US-1.3 | API request includes session token | `backend/tests/authenticate.test.js` | `API request includes session token` |
 | US-1.3 | Protected API request succeeds with a valid session | `backend/tests/authenticate.test.js` | `Protected API request succeeds with a valid session` |
 | US-1.3 | Expired or invalid session token | `backend/tests/authenticate.test.js` | `Expired or invalid session token` |
-| US-1.4 | User signs out | `backend/tests/auth.test.js` | `User signs out` |
+| US-1.4 | User signs out | `backend/tests/auth.test.js`, `frontend/tests/Home.test.js` | `User signs out` |
 | US-1.5 | Unauthenticated user accesses a protected route | `backend/tests/authenticate.test.js`, `frontend/tests/router.test.js` | `Unauthenticated user accesses a protected route` |
 
 ---
@@ -385,13 +385,13 @@ Do not implement behavior not in this spec.
 
 ## Definition of Done
 
-*   [ ] Backend and frontend implemented per this spec (**FR-00N** satisfied)
-*   [ ] **Success Criteria (SC-00N)** met
-*   [ ] All mapped tests pass (`npm test`)
-*   [ ] Test Coverage Map complete
-*   [ ] `features/reference/data-model.md` updated (if schema changed)
-*   [ ] `features/reference/api.md` updated (if API changed)
-*   [ ] `features/reference/behavior.md` updated (if product rules changed)
+*   [x] Backend and frontend implemented per this spec (**FR-00N** satisfied)
+*   [x] **Success Criteria (SC-00N)** met
+*   [x] All mapped tests pass (`npm test`)
+*   [x] Test Coverage Map complete
+*   [x] `features/reference/data-model.md` updated (if schema changed)
+*   [x] `features/reference/api.md` updated (if API changed)
+*   [x] `features/reference/behavior.md` updated (if product rules changed)
 
 ---
 
