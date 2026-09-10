@@ -317,7 +317,7 @@ Replaces the Feature 1 placeholder home page. **Single Vue view** (`Dashboard.vu
 |-------|----------|-----------|-----------|
 | US-2.1 | User creates a new list | `backend/tests/lists.test.js`, `frontend/tests/Dashboard.test.js` | `User creates a new list` |
 | US-2.1 | User creates a list with an empty name | `backend/tests/lists.test.js`, `frontend/tests/Dashboard.test.js` | `User creates a list with an empty name` |
-| US-2.1 | User creates a list with a name that is too long | `backend/tests/lists.test.js` | `User creates a list with a name that is too long` |
+| US-2.1 | User creates a list with a name that is too long | `backend/tests/lists.test.js`, `frontend/tests/Dashboard.test.js` | `User creates a list with a name that is too long` |
 | US-2.2 | Dashboard loads with existing lists | `backend/tests/lists.test.js`, `frontend/tests/Dashboard.test.js` | `Dashboard loads with existing lists` |
 | US-2.2 | User has no lists | `frontend/tests/Dashboard.test.js` | `User has no lists` |
 | US-2.2 | User cannot see another user's lists | `backend/tests/lists.test.js` | `User cannot see another user's lists` |

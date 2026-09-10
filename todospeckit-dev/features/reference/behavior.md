@@ -1,6 +1,6 @@
 # Behavior & Rules Reference
 
-**Living snapshot** of product rules currently in force after **Feature 1**.
+**Living snapshot** of product rules currently in force after **Feature 2**.
 
 These files answer: *"What rules does the app enforce right now?"*  
 They do **not** authorize new scope — implement only from `features/feature-*.md` (**FR-00N** + Gherkin). Deep scenarios stay in the introducing feature; this file is an **index**.
@@ -36,15 +36,33 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Session stored in `localStorage` key `user` | Login/register views | Feature 1 |
 | Shared `emailRules` on register (required + format) | `frontend/src/config/validation.js` | Feature 1 |
 | Username normalized `trim().toLowerCase()` on save | User model hook + auth controller | Feature 1 |
-| No `MenuBar`; auth pages and home placeholder are full-screen | `App.vue` + Home | Feature 1 |
-| Home shows a welcome using first name and a standalone **Sign out** button | `Home.vue` | Feature 1 |
 
 ## Ownership & isolation
 
 | Rule | Enforcement | Introduced |
 |------|-------------|------------|
 | Every authenticated request resolves to `req.user.id` from the session | `authenticate` | Feature 1 |
-| `GET /todo/lists` returns only the caller's lists (empty array until Feature 2) | `list.controller` + `authenticate` | Feature 1 |
+| Cross-user access → **`404`**, never `403` (do not confirm existence) | Controllers + `getAccessibleListOrNull` | ADR-0002; Feature 2 |
+| Lists: reads/writes scoped to `userId = req.user.id`; create ownership from server only | `list.controller` + `getAccessibleListOrNull` | Feature 2 |
+
+## Lists
+
+| Rule | Enforcement | Introduced |
+|------|-------------|------------|
+| List name trimmed; empty/whitespace rejected | Create/update API + Dashboard dialogs | Feature 2 |
+| List name max **100** characters | API + client rules | Feature 2 |
+| Lists returned **alphabetically by name** | `findAll` `order: name ASC` | Feature 2 |
+| Single-view lists UI (`Dashboard.vue`); list CRUD via dialogs; no sidebar/main split | Dashboard | Feature 2 |
+| Empty lists: **"No lists yet. Create your first list."** | Dashboard | Feature 2 |
+| List rows expose **Edit list** and **Delete list** icon actions (`size="small"`) | Dashboard | Feature 2 |
+| **+ New List** / dialog **Create** use class `oc-cta` | Dashboard | Feature 2 |
+
+## Profile & MenuBar
+
+| Rule | Enforcement | Introduced |
+|------|-------------|------------|
+| MenuBar: signed-in user's name and standalone **Sign out** | MenuBar | Feature 2 |
+| MenuBar hidden on login and register routes | `MenuBar.vue` + `App.vue` | Feature 2 |
 
 ## Errors (product convention)
 
@@ -53,6 +71,8 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Error body shape `{ "message": "Human-readable explanation." }` | Controllers | Feature 1 |
 | Duplicate username → `"Username is already taken."`; duplicate email → `"Email is already registered."` | Register | Feature 1 |
 | Invalid login → `"Invalid username or password."` (same message for unknown user or bad password) | Login | Feature 1 |
+| Empty list name → `"List name is required."`; name too long → `"List name must be 100 characters or fewer."` | List API + Dashboard | Feature 2 |
+| Missing/unowned list → `"List with id=<id> not found."` | List API | Feature 2 |
 
 ---
 
