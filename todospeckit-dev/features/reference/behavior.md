@@ -1,6 +1,6 @@
 # Behavior & Rules Reference
 
-**Living snapshot** of product rules currently in force after **Feature 3**.
+**Living snapshot** of product rules currently in force after **Feature 4**.
 
 These files answer: *"What rules does the app enforce right now?"*  
 They do **not** authorize new scope — implement only from `features/feature-*.md` (**FR-00N** + Gherkin). Deep scenarios stay in the introducing feature; this file is an **index**.
@@ -34,17 +34,18 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Signed-in user visiting login/register → redirect to home | Router `beforeEach` | Feature 1 |
 | Default role for new users is `worker` | Register | Feature 1 |
 | Session stored in `localStorage` key `user` | Login/register views | Feature 1 |
-| Shared `emailRules` on register (required + format) | `frontend/src/config/validation.js` | Feature 1 |
-| Username normalized `trim().toLowerCase()` on save | User model hook + auth controller | Feature 1 |
+| Shared `emailRules` on register and Edit Profile (required + format) | `frontend/src/config/validation.js` | Features 1, 4 |
+| Username normalized `trim().toLowerCase()` on save | User model hook + auth and profile controllers | Features 1, 4 |
 
 ## Ownership & isolation
 
 | Rule | Enforcement | Introduced |
 |------|-------------|------------|
 | Every authenticated request resolves to `req.user.id` from the session | `authenticate` | Feature 1 |
-| Cross-user access → **`404`**, never `403` (do not confirm existence) | Controllers + `getAccessibleListOrNull` / `getAccessibleTodoOrNull` | ADR-0002; Features 2–3 |
+| Cross-user access → **`404`**, never `403` (do not confirm existence) | Controllers + `getAccessibleListOrNull` / `getAccessibleTodoOrNull` / `getAccessibleUserOrNull` | ADR-0002; Features 2–4 |
 | Lists: reads/writes scoped to `userId = req.user.id`; create ownership from server only | `list.controller` + `getAccessibleListOrNull` | Feature 2 |
 | Todos: reads/writes scoped to `userId = req.user.id`; create requires an owned parent list; `userId` / `listId` from server only | `todo.controller` + `getAccessibleListOrNull` / `getAccessibleTodoOrNull` | Feature 3 |
+| Profile: `GET`/`PUT /todo/users/:id` only when `:id === req.user.id` | `user.controller` + `getAccessibleUserOrNull` | Feature 4 |
 
 ## Lists
 
@@ -78,20 +79,29 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 
 | Rule | Enforcement | Introduced |
 |------|-------------|------------|
-| MenuBar: signed-in user's name and standalone **Sign out** | MenuBar | Feature 2 |
 | MenuBar hidden on login and register routes | `MenuBar.vue` + `App.vue` | Feature 2 |
+| MenuBar shows a **user icon** that opens a profile dropdown (full name, username, email) | MenuBar | Feature 4 |
+| **Edit Profile** (`oc-cta`) opens a dialog; fields pre-filled from session / `GET /todo/users/:id` | MenuBar + `userServices` | Feature 4 |
+| Profile fields trimmed; required strings rejected when empty | Profile `PUT` + Edit Profile dialog | Feature 4 |
+| Password on profile update is optional; if set, min **8** chars and bcrypt hash; confirm must match | Profile `PUT` + dialog rules | Feature 4 |
+| After profile save: refresh `localStorage` `user` (keep token) and dispatch `user-logged-in` | MenuBar | Feature 4 |
+| Logout lives only in the profile dropdown as **Log out** (no menu-bar **Sign out**) | MenuBar + `authServices.logoutUser` | Feature 4 |
+| Role is read-only on profile update | Profile `PUT` | Feature 4 |
 
 ## Errors (product convention)
 
 | Rule | Enforcement | Introduced |
 |------|-------------|------------|
 | Error body shape `{ "message": "Human-readable explanation." }` | Controllers | Feature 1 |
-| Duplicate username → `"Username is already taken."`; duplicate email → `"Email is already registered."` | Register | Feature 1 |
+| Duplicate username → `"Username is already taken."`; duplicate email → `"Email is already registered."` | Register + profile `PUT` | Features 1, 4 |
 | Invalid login → `"Invalid username or password."` (same message for unknown user or bad password) | Login | Feature 1 |
 | Empty list name → `"List name is required."`; name too long → `"List name must be 100 characters or fewer."` | List API + Dashboard | Feature 2 |
 | Missing/unowned list → `"List with id=<id> not found."` | List API; todo create/list fetch | Feature 2–3 |
 | Empty todo title → `"Todo title is required."`; title too long → `"Todo title must be 255 characters or fewer."` | Todo API + `ListItemsDialog` | Feature 3 |
 | Missing/unowned todo → `"Todo with id=<id> not found."` | Todo API | Feature 3 |
+| Empty profile first name → `"First name is required."` (same pattern for last name, email, username) | Profile `PUT` + Edit Profile dialog | Feature 4 |
+| Profile password too short → `"Password must be at least 8 characters."` | Profile `PUT` + Edit Profile dialog | Feature 4 |
+| Missing/unowned user → `"User with id=<id> not found."` | Profile API | Feature 4 |
 
 ---
 

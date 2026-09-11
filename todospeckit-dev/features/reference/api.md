@@ -1,7 +1,7 @@
 # API Reference
 
 **Base path:** `/todo/`  
-**Status:** Integrated API through **Feature 3** (authentication, list CRUD, and todo item CRUD).  
+**Status:** Integrated API through **Feature 4** (authentication, list CRUD, todo item CRUD, and user profile).  
 **Authority for new work:** feature specs in `features/` — update this file in the same PR when routes or payloads change.
 
 **Auth:** Send `Authorization: Bearer <token>` on protected routes.  
@@ -14,6 +14,7 @@
 | Register, login, logout | 1 |
 | List CRUD (`GET/POST/PUT/DELETE /todo/lists`) | 2 |
 | Todo CRUD (`GET/POST /todo/lists/:listId/todos`, `PUT/DELETE /todo/todos/:id`) | 3 |
+| User profile (`GET/PUT /todo/users/:id`) | 4 |
 
 ---
 
@@ -148,5 +149,49 @@ Deleting a list also deletes its todos (database cascade).
 ```
 
 **Validation errors:** empty/whitespace title `400` with `"Todo title is required."`; title > 255 chars `400` with `"Todo title must be 255 characters or fewer."`; invalid `listId` `400` with `"List id is invalid."`; invalid todo id `400` with `"Todo id is invalid."`; unowned or missing parent list `404` with `"List with id=<id> not found."`; unowned or missing todo `404` with `"Todo with id=<id> not found."`
+
+**Unauthenticated / expired token:** `401` with `{ "message": "Unauthorized! …" }`.
+
+---
+
+## User profile (Feature 4)
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `GET` | `/todo/users/:id` | Yes | Fetch the caller's profile |
+| `PUT` | `/todo/users/:id` | Yes | Update the caller's profile |
+
+Self-access only: `:id` must equal `req.user.id`.
+
+**Update body:**
+```json
+{
+  "fName": "Jane",
+  "lName": "Doe",
+  "email": "jane@example.com",
+  "username": "jdoe",
+  "password": "newpassword123"
+}
+```
+
+`fName`, `lName`, `email`, and `username` are required. `password` is optional — omit it to leave the current hash unchanged. `role` in the body is ignored.
+
+**Profile success** (`200`):
+```json
+{
+  "id": 42,
+  "fName": "Jane",
+  "lName": "Doe",
+  "email": "jane@example.com",
+  "username": "jdoe",
+  "role": "worker",
+  "createdAt": "2026-07-02T12:00:00.000Z",
+  "updatedAt": "2026-07-02T12:05:00.000Z"
+}
+```
+
+Password hash is never returned.
+
+**Validation errors:** empty/whitespace first name `400` with `"First name is required."` (same pattern for last name, email, username); password present and fewer than 8 characters `400` with `"Password must be at least 8 characters."`; duplicate username `400` with `"Username is already taken."`; duplicate email `400` with `"Email is already registered."`; invalid `id` `400` with `"User id is invalid."`; unowned or missing user `404` with `"User with id=<id> not found."`
 
 **Unauthenticated / expired token:** `401` with `{ "message": "Unauthorized! …" }`.
