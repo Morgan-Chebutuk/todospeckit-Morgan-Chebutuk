@@ -33,3 +33,4 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Lists CRUD + Dashboard lists view + MenuBar sign-out | Feature 2 |
 | Todo item CRUD + list-items dialogs on Dashboard | Feature 3 |
 | User profile GET/PUT + MenuBar profile dropdown / Log out | Feature 4 |
+| Todo dueDate + overdue display | Feature 5 |

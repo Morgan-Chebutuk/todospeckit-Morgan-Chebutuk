@@ -1,6 +1,12 @@
 <script setup>
 import { ref, watch } from "vue";
 import todoServices from "../services/todoServices.js";
+import {
+  formatDueDate,
+  isTodoOverdue,
+  optionalDueDateRules,
+  toDateInputValue,
+} from "../config/validation.js";
 
 const props = defineProps({
   modelValue: {
@@ -28,7 +34,9 @@ const addForm = ref(null);
 const editForm = ref(null);
 
 const newTodoTitle = ref("");
+const newTodoDueDate = ref("");
 const editTodoTitle = ref("");
+const editTodoDueDate = ref("");
 const todoToEdit = ref(null);
 const todoToDelete = ref(null);
 
@@ -41,6 +49,26 @@ const todoTitleRules = [
   (value) => !!value?.trim() || "Todo title is required.",
   (value) => !value || value.trim().length <= 255 || "Todo title must be 255 characters or fewer.",
 ];
+
+const buildTodoWritePayload = (title, dueDateInput, previousDueDate) => {
+  const payload = { title };
+  const nextDueDate = dueDateInput || null;
+
+  if (previousDueDate === undefined) {
+    if (nextDueDate) {
+      payload.dueDate = nextDueDate;
+    }
+
+    return payload;
+  }
+
+  const previous = previousDueDate || null;
+  if (nextDueDate !== previous) {
+    payload.dueDate = nextDueDate;
+  }
+
+  return payload;
+};
 
 const sortTodos = (items) =>
   [...items].sort((a, b) => {
@@ -83,12 +111,14 @@ const closeItemsDialog = () => {
 const openAddDialog = () => {
   dialogError.value = "";
   newTodoTitle.value = "";
+  newTodoDueDate.value = "";
   addDialogOpen.value = true;
 };
 
 const closeAddDialog = () => {
   addDialogOpen.value = false;
   newTodoTitle.value = "";
+  newTodoDueDate.value = "";
   dialogError.value = "";
 };
 
@@ -103,9 +133,10 @@ const handleAddTodo = async () => {
   addLoading.value = true;
 
   try {
-    const response = await todoServices.create(props.list.id, {
-      title: newTodoTitle.value.trim(),
-    });
+    const response = await todoServices.create(
+      props.list.id,
+      buildTodoWritePayload(newTodoTitle.value.trim(), newTodoDueDate.value)
+    );
     todos.value = sortTodos([...todos.value, response.data]);
     closeAddDialog();
   } catch (error) {
@@ -119,6 +150,7 @@ const openEditDialog = (todo) => {
   dialogError.value = "";
   todoToEdit.value = todo;
   editTodoTitle.value = todo.title;
+  editTodoDueDate.value = toDateInputValue(todo.dueDate);
   editDialogOpen.value = true;
 };
 
@@ -126,6 +158,7 @@ const closeEditDialog = () => {
   editDialogOpen.value = false;
   todoToEdit.value = null;
   editTodoTitle.value = "";
+  editTodoDueDate.value = "";
   dialogError.value = "";
 };
 
@@ -140,9 +173,14 @@ const handleEditTodo = async () => {
   editLoading.value = true;
 
   try {
-    const response = await todoServices.update(todoToEdit.value.id, {
-      title: editTodoTitle.value.trim(),
-    });
+    const response = await todoServices.update(
+      todoToEdit.value.id,
+      buildTodoWritePayload(
+        editTodoTitle.value.trim(),
+        editTodoDueDate.value,
+        toDateInputValue(todoToEdit.value.dueDate)
+      )
+    );
     todos.value = sortTodos(
       todos.value.map((todo) => (todo.id === response.data.id ? response.data : todo))
     );
@@ -258,6 +296,12 @@ const handleToggleComplete = async (todo, completed) => {
             >
               {{ todo.title }}
             </v-list-item-title>
+            <v-list-item-subtitle
+              v-if="todo.dueDate"
+              :class="isTodoOverdue(todo) ? 'text-error' : ''"
+            >
+              {{ formatDueDate(todo.dueDate) }}
+            </v-list-item-subtitle>
 
             <template #append>
               <v-btn
@@ -286,17 +330,30 @@ const handleToggleComplete = async (todo, completed) => {
     </v-card>
   </v-dialog>
 
-  <v-dialog v-if="addDialogOpen" v-model="addDialogOpen" max-width="480">
+  <v-dialog v-if="addDialogOpen" v-model="addDialogOpen" max-width="560">
     <v-card>
       <v-card-title>Add item</v-card-title>
       <v-card-text>
         <v-form ref="addForm" @submit.prevent="handleAddTodo">
-          <v-text-field
-            v-model="newTodoTitle"
-            label="Todo title"
-            :rules="todoTitleRules"
-            autofocus
-          />
+          <v-row>
+            <v-col cols="7">
+              <v-text-field
+                v-model="newTodoTitle"
+                label="Todo title"
+                :rules="todoTitleRules"
+                autofocus
+              />
+            </v-col>
+            <v-col cols="5">
+              <v-text-field
+                v-model="newTodoDueDate"
+                label="Due date"
+                type="date"
+                :rules="optionalDueDateRules"
+                clearable
+              />
+            </v-col>
+          </v-row>
           <v-alert v-if="dialogError" type="error" class="mt-2">
             {{ dialogError }}
           </v-alert>
@@ -318,17 +375,30 @@ const handleToggleComplete = async (todo, completed) => {
     </v-card>
   </v-dialog>
 
-  <v-dialog v-if="editDialogOpen" v-model="editDialogOpen" max-width="480">
+  <v-dialog v-if="editDialogOpen" v-model="editDialogOpen" max-width="560">
     <v-card>
       <v-card-title>Edit item</v-card-title>
       <v-card-text>
         <v-form ref="editForm" @submit.prevent="handleEditTodo">
-          <v-text-field
-            v-model="editTodoTitle"
-            label="Todo title"
-            :rules="todoTitleRules"
-            autofocus
-          />
+          <v-row>
+            <v-col cols="7">
+              <v-text-field
+                v-model="editTodoTitle"
+                label="Todo title"
+                :rules="todoTitleRules"
+                autofocus
+              />
+            </v-col>
+            <v-col cols="5">
+              <v-text-field
+                v-model="editTodoDueDate"
+                label="Due date"
+                type="date"
+                :rules="optionalDueDateRules"
+                clearable
+              />
+            </v-col>
+          </v-row>
           <v-alert v-if="dialogError" type="error" class="mt-2">
             {{ dialogError }}
           </v-alert>

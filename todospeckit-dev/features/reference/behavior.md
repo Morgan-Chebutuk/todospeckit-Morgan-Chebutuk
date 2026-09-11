@@ -1,6 +1,6 @@
 # Behavior & Rules Reference
 
-**Living snapshot** of product rules currently in force after **Feature 4**.
+**Living snapshot** of product rules currently in force after **Feature 5**.
 
 These files answer: *"What rules does the app enforce right now?"*  
 They do **not** authorize new scope — implement only from `features/feature-*.md` (**FR-00N** + Gherkin). Deep scenarios stay in the introducing feature; this file is an **index**.
@@ -74,6 +74,12 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Empty todos: **"No todos in this list yet."** | `ListItemsDialog` | Feature 3 |
 | Completed todos show struck-through or muted title styling | `ListItemsDialog` | Feature 3 |
 | Opening items for another list fetches only that list's todos | `todoServices.getAll(listId)` | Feature 3 |
+| `dueDate` is optional; `null` means no due date | Todo create/update API + add/edit item dialogs | Feature 5 |
+| Dates are calendar-only `YYYY-MM-DD` (no time-of-day); invalid strings rejected | Todo controller calendar check + `optionalDueDateRules` | Feature 5 |
+| `PUT` omit `dueDate` → unchanged; `dueDate: null` → clear | Todo update API + `todoServices` | Feature 5 |
+| Due date shown on the todo row when set (locale-formatted, e.g. `Jul 15, 2026`) | `ListItemsDialog` + `formatDueDate` | Feature 5 |
+| Incomplete todos with `dueDate` before today (browser local calendar) use overdue styling (`text-error` on the date); completed todos do not, even if the date is in the past | `ListItemsDialog` + `isTodoOverdue` | Feature 5 |
+| Add-item and edit-item dialogs include an optional **Due date** field beside the title; empty creates/clears to no due date | `ListItemsDialog` | Feature 5 |
 
 ## Profile & MenuBar
 
@@ -98,6 +104,7 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Empty list name → `"List name is required."`; name too long → `"List name must be 100 characters or fewer."` | List API + Dashboard | Feature 2 |
 | Missing/unowned list → `"List with id=<id> not found."` | List API; todo create/list fetch | Feature 2–3 |
 | Empty todo title → `"Todo title is required."`; title too long → `"Todo title must be 255 characters or fewer."` | Todo API + `ListItemsDialog` | Feature 3 |
+| Invalid due date → `"Due date must be a valid date in YYYY-MM-DD format."` | Todo create/update API | Feature 5 |
 | Missing/unowned todo → `"Todo with id=<id> not found."` | Todo API | Feature 3 |
 | Empty profile first name → `"First name is required."` (same pattern for last name, email, username) | Profile `PUT` + Edit Profile dialog | Feature 4 |
 | Profile password too short → `"Password must be at least 8 characters."` | Profile `PUT` + Edit Profile dialog | Feature 4 |

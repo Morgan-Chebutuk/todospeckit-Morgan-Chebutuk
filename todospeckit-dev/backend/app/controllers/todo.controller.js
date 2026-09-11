@@ -3,10 +3,39 @@ import logger from "../config/logger.js";
 import { getAccessibleListOrNull, getAccessibleTodoOrNull } from "../authorization/authorization.js";
 
 const TODO_TITLE_MAX = 255;
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const DUE_DATE_ERROR = "Due date must be a valid date in YYYY-MM-DD format.";
 
 const parseId = (value) => {
   const id = parseInt(value, 10);
   return Number.isNaN(id) ? null : id;
+};
+
+const isValidDueDate = (value) => {
+  if (typeof value !== "string" || !DATE_ONLY_REGEX.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day
+  );
+};
+
+const parseDueDateForWrite = (dueDate) => {
+  if (dueDate === null) {
+    return { value: null };
+  }
+
+  if (!isValidDueDate(dueDate)) {
+    return { error: DUE_DATE_ERROR };
+  }
+
+  return { value: dueDate };
 };
 
 const validateTodoTitle = (title) => {
@@ -67,11 +96,22 @@ exports.create = async (req, res) => {
       return res.status(400).send({ message: titleError });
     }
 
+    let dueDate = null;
+    if (Object.prototype.hasOwnProperty.call(req.body ?? {}, "dueDate") && req.body.dueDate !== undefined) {
+      const parsedDueDate = parseDueDateForWrite(req.body.dueDate);
+      if (parsedDueDate.error) {
+        return res.status(400).send({ message: parsedDueDate.error });
+      }
+
+      dueDate = parsedDueDate.value;
+    }
+
     const todo = await db.todo.create({
       title: req.body.title.trim(),
       listId: list.id,
       userId: req.user.id,
       completed: false,
+      dueDate,
     });
 
     return res.status(201).send(todo);
@@ -104,6 +144,15 @@ exports.update = async (req, res) => {
 
     if (Object.prototype.hasOwnProperty.call(req.body ?? {}, "completed")) {
       todo.completed = Boolean(req.body.completed);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body ?? {}, "dueDate")) {
+      const parsedDueDate = parseDueDateForWrite(req.body.dueDate);
+      if (parsedDueDate.error) {
+        return res.status(400).send({ message: parsedDueDate.error });
+      }
+
+      todo.dueDate = parsedDueDate.value;
     }
 
     await todo.save();

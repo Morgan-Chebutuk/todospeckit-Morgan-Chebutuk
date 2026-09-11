@@ -1,6 +1,6 @@
 # Data Model Reference
 
-**Status:** Integrated schema through **Feature 4** (`users`, `sessions`, `lists`, `todos` — no new tables).  
+**Status:** Integrated schema through **Feature 5** (`users`, `sessions`, `lists`, `todos` — `todos.dueDate` added; no new tables).  
 **Authority for new work:** feature specs in `features/` — update this file in the same PR when schema changes.  
 **Architecture:** [ADR-0003 — MySQL relational database](../../docs/adr/0003-mysql-relational-database.md)
 
@@ -12,6 +12,7 @@
 | `lists` (CRUD) | Feature 2 |
 | `todos` | Feature 3 |
 | `users` profile `GET`/`PUT` (same table) | Feature 4 |
+| `todos.dueDate` | Feature 5 |
 
 ---
 
@@ -68,6 +69,7 @@
 | `listId` | INTEGER FK | Required → `lists.id`; cascade on list delete |
 | `title` | STRING(255) | Required |
 | `completed` | BOOLEAN | Required; default `false` |
+| `dueDate` | DATEONLY | Nullable; optional on create/update; calendar date only (`YYYY-MM-DD` in the API); existing rows default to `null` |
 | `userId` | INTEGER FK | Required → `users.id`; set from `req.user.id` on create |
 | `createdAt` | DATE | Sequelize timestamps |
 | `updatedAt` | DATE | Sequelize timestamps |
