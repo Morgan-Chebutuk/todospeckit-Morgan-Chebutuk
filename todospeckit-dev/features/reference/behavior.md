@@ -1,6 +1,6 @@
 # Behavior & Rules Reference
 
-**Living snapshot** of product rules currently in force after **Feature 2**.
+**Living snapshot** of product rules currently in force after **Feature 3**.
 
 These files answer: *"What rules does the app enforce right now?"*  
 They do **not** authorize new scope — implement only from `features/feature-*.md` (**FR-00N** + Gherkin). Deep scenarios stay in the introducing feature; this file is an **index**.
@@ -42,8 +42,9 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Rule | Enforcement | Introduced |
 |------|-------------|------------|
 | Every authenticated request resolves to `req.user.id` from the session | `authenticate` | Feature 1 |
-| Cross-user access → **`404`**, never `403` (do not confirm existence) | Controllers + `getAccessibleListOrNull` | ADR-0002; Feature 2 |
+| Cross-user access → **`404`**, never `403` (do not confirm existence) | Controllers + `getAccessibleListOrNull` / `getAccessibleTodoOrNull` | ADR-0002; Features 2–3 |
 | Lists: reads/writes scoped to `userId = req.user.id`; create ownership from server only | `list.controller` + `getAccessibleListOrNull` | Feature 2 |
+| Todos: reads/writes scoped to `userId = req.user.id`; create requires an owned parent list; `userId` / `listId` from server only | `todo.controller` + `getAccessibleListOrNull` / `getAccessibleTodoOrNull` | Feature 3 |
 
 ## Lists
 
@@ -55,7 +56,23 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Single-view lists UI (`Dashboard.vue`); list CRUD via dialogs; no sidebar/main split | Dashboard | Feature 2 |
 | Empty lists: **"No lists yet. Create your first list."** | Dashboard | Feature 2 |
 | List rows expose **Edit list** and **Delete list** icon actions (`size="small"`) | Dashboard | Feature 2 |
+| List rows expose an **Items** icon (`aria-label` **View items for &lt;list name&gt;**) that opens the list-items dialog | Dashboard | Feature 3 |
 | **+ New List** / dialog **Create** use class `oc-cta` | Dashboard | Feature 2 |
+| Deleting a list removes its todos | `List hasMany Todo` CASCADE | Feature 3 |
+
+## Todos
+
+| Rule | Enforcement | Introduced |
+|------|-------------|------------|
+| Todo title trimmed; empty/whitespace rejected | Create/update API + list-items dialogs | Feature 3 |
+| Todo title max **255** characters | API + client rules | Feature 3 |
+| New todos default `completed: false` | Todo create | Feature 3 |
+| Todos returned **incomplete first**, then `createdAt` ASC | `findAll` order | Feature 3 |
+| **+ Add Item** is only inside the list-items dialog (not on the main lists view) | Dashboard + `ListItemsDialog` | Feature 3 |
+| List-items dialog title **&lt;list name&gt; — Items**; **+ Add Item** / **Add** use class `oc-cta` | `ListItemsDialog` | Feature 3 |
+| Empty todos: **"No todos in this list yet."** | `ListItemsDialog` | Feature 3 |
+| Completed todos show struck-through or muted title styling | `ListItemsDialog` | Feature 3 |
+| Opening items for another list fetches only that list's todos | `todoServices.getAll(listId)` | Feature 3 |
 
 ## Profile & MenuBar
 
@@ -72,7 +89,9 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Duplicate username → `"Username is already taken."`; duplicate email → `"Email is already registered."` | Register | Feature 1 |
 | Invalid login → `"Invalid username or password."` (same message for unknown user or bad password) | Login | Feature 1 |
 | Empty list name → `"List name is required."`; name too long → `"List name must be 100 characters or fewer."` | List API + Dashboard | Feature 2 |
-| Missing/unowned list → `"List with id=<id> not found."` | List API | Feature 2 |
+| Missing/unowned list → `"List with id=<id> not found."` | List API; todo create/list fetch | Feature 2–3 |
+| Empty todo title → `"Todo title is required."`; title too long → `"Todo title must be 255 characters or fewer."` | Todo API + `ListItemsDialog` | Feature 3 |
+| Missing/unowned todo → `"Todo with id=<id> not found."` | Todo API | Feature 3 |
 
 ---
 

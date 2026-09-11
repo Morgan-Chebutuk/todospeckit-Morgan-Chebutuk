@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import listServices from "../services/listServices.js";
+import ListItemsDialog from "../components/ListItemsDialog.vue";
 
 const lists = ref([]);
 const listsLoading = ref(false);
@@ -22,6 +23,9 @@ const listToDelete = ref(null);
 const createLoading = ref(false);
 const renameLoading = ref(false);
 const deleteLoading = ref(false);
+
+const itemsDialogOpen = ref(false);
+const itemsList = ref(null);
 
 const listNameRules = [
   (value) => !!value?.trim() || "List name is required.",
@@ -114,6 +118,18 @@ const handleRenameList = async () => {
   }
 };
 
+const openItemsDialog = (list) => {
+  itemsList.value = list;
+  itemsDialogOpen.value = true;
+};
+
+const handleItemsDialogToggle = (open) => {
+  itemsDialogOpen.value = open;
+  if (!open) {
+    itemsList.value = null;
+  }
+};
+
 const openDeleteDialog = (list) => {
   listsError.value = "";
   listToDelete.value = list;
@@ -184,6 +200,13 @@ onMounted(() => {
         <v-list v-else-if="!listsLoading" density="comfortable" class="pa-0">
           <v-list-item v-for="list in lists" :key="list.id" :title="list.name">
             <template #append>
+              <v-btn
+                icon="mdi-format-list-checks"
+                variant="text"
+                size="small"
+                :aria-label="`View items for ${list.name}`"
+                @click="openItemsDialog(list)"
+              />
               <v-btn
                 icon="mdi-pencil"
                 variant="text"
@@ -267,6 +290,13 @@ onMounted(() => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <ListItemsDialog
+      v-if="itemsList"
+      :model-value="itemsDialogOpen"
+      :list="itemsList"
+      @update:model-value="handleItemsDialogToggle"
+    />
 
     <v-dialog v-model="deleteDialogOpen" max-width="480">
       <v-card>

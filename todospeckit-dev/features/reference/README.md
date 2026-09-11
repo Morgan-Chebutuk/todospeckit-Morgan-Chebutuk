@@ -31,3 +31,4 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 |------|------------|
 | Auth, sessions | Feature 1 |
 | Lists CRUD + Dashboard lists view + MenuBar sign-out | Feature 2 |
+| Todo item CRUD + list-items dialogs on Dashboard | Feature 3 |
